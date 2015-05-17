@@ -1,0 +1,5 @@
+# Sample YAML file describing syntax and options for declaring Stack Driver groups and policies
+# The syntax is very similar to that of SaltStack states files
+
+group-name:
+  group.present:
