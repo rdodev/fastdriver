@@ -1,5 +1,4 @@
 # Sample YAML file describing syntax and options for declaring Stack Driver groups and policies
-# The syntax is very similar to that of SaltStack states files
 
 group-name:
   action: create # only create is supported at the moment
