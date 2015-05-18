@@ -2,4 +2,12 @@
 # The syntax is very similar to that of SaltStack states files
 
 group-name:
-  group.present:
+  action: create # only create is supported at the moment
+  parent: null #if it's a subgroup, you need to specify that group's name, not id
+  conjunction: AND # AND and OR are supported
+  conditions: # you will need at least one condition
+    - condition:
+        comparison: contains # ends_with, begins_with, etc.
+        type: tag # future-proofing, for now this value is ignored and assumed to be an AWS tag
+        name: service # the name of said key
+        value: example-service # the value
