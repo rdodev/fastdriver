@@ -1,3 +1,37 @@
 #!/usr/bin/env node
 
-console.log('this also worked');
+fs  = require('fs');
+pth = require('path');
+yml = require('js-yaml');
+req = require('request');
+_   = require('underscore');
+
+
+
+var FastDriver = function  (filename) {
+  var _this = this;
+  _this.filename = filename;
+  
+  _this.resolveFileName = function () {
+    try {
+      _this.fullFilePath = pth.resolve(_this.filename);
+    }
+    catch (err) {
+      console.log("Could not find the specified file.");
+      process.exit(1);
+    }
+  };
+
+  _this.parseYAML = function () {
+    try {
+      var doc = yml.safeLoad(fs.readFileSync(_this.fullFilePath, 'utf8'));
+      console.log(doc);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+};
+
+var fd = new FastDriver(process.argv[2]);
+fd.resolveFileName();
+fd.parseYAML();
