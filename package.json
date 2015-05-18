@@ -2,7 +2,6 @@
   "name": "fastdriver",
   "version": "0.0.1",
   "description": "Mini utility to make creation of StackDriver groups and policies faster",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,7 +19,11 @@
   },
   "homepage": "https://github.com/rdodev/fastdriver",
   "dependencies": {
+    "js-yaml": "^3.3.1",
     "request": "^2.55.0",
-    "yaml-js": "^0.1.1"
+    "underscore": "^1.8.3"
+  },
+  "bin": {
+    "fastdriver": "./lib/fastdriver"
   }
 }

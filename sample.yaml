@@ -1,8 +1,12 @@
 # Sample YAML file describing syntax and options for declaring Stack Driver groups and policies
+# All rights reserved. (c) 2015.
+
+stackdriver_api_key: "test1234567890test1234567890" #use double quotes to avoid issue with weird chars.
 
 group-name:
   action: create # only create is supported at the moment
-  parent: null #if it's a subgroup, you need to specify that group's name, not id
+  parent: other-group #if it's a subgroup, you need to specify that group's name, not id
+  requires: other-group # this will attempt to create named group before creating self
   conjunction: AND # AND and OR are supported
   conditions: # you will need at least one condition
     - condition:
@@ -10,3 +14,10 @@ group-name:
         type: tag # future-proofing, for now this value is ignored and assumed to be an AWS tag
         name: service # the name of said key
         value: example-service # the value
+
+other-group:
+  action: create
+  parent: no
+  conditions: []
+
+
