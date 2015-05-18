@@ -1,6 +1,6 @@
 {
   "name": "fastdriver",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Mini utility to make creation of StackDriver groups and policies faster",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -21,6 +21,7 @@
   "dependencies": {
     "commander": "^2.8.1",
     "js-yaml": "^3.3.1",
+    "pkginfo": "^0.3.0",
     "request": "^2.55.0",
     "underscore": "^1.8.3"
   },
