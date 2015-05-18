@@ -19,11 +19,13 @@
   },
   "homepage": "https://github.com/rdodev/fastdriver",
   "dependencies": {
+    "commander": "^2.8.1",
     "js-yaml": "^3.3.1",
     "request": "^2.55.0",
     "underscore": "^1.8.3"
   },
   "bin": {
-    "fastdriver": "./lib/fastdriver"
+    "fastdriver": "./lib/fastdriver",
+    "fastdriver-create": "./lib/fastdriver-create"
   }
 }
