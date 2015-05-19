@@ -11,6 +11,7 @@ _   = require('underscore');
 var FastDriver = function  (filename) {
   var _this = this;
   _this.filename = filename;
+  _this.execQue  =[];
   
   _this.resolveFileName = function () {
     try {
@@ -24,14 +25,25 @@ var FastDriver = function  (filename) {
 
   _this.parseYAML = function () {
     try {
-      var doc = yml.safeLoad(fs.readFileSync(_this.fullFilePath, 'utf8'));
+      _this.parsed = yml.safeLoad(fs.readFileSync(_this.fullFilePath, 'utf8'));
       console.log(doc);
-    } catch (e) {
-      console.log(e);
+    } catch (err) {
+      console.log('Could not load yaml file: ' + err);
+      process.exit(1);
     }
+  };
+
+  _this.resolveDeps = function () {
+    
+  };
+
+  _this.run = function () {
+    _this.resolveFileName();
+    _this.parseYAML();
+    _this.resolveDeps();
+    _this.executeActions();
   }
 };
 
 var fd = new FastDriver(process.argv[2]);
-fd.resolveFileName();
-fd.parseYAML();
+fd.run();
