@@ -3,11 +3,13 @@ Mini utility to make creation of StackDriver groups and policies faster
 
 ## Installing
 You have two options:
+
 1. via npm `sudo npm install -g fastdriver`
+
 2. clone this repo, `cd` into it, then run `sudo npm install -g .`
 
 ## Running
-Once installed, you write a FastDriver spec file. Once done, you run:
+Once installed, you need to write a FastDriver spec file. Once done, you run:
 
 `$ fastdriver create <filename.yaml>`
 
