@@ -1,0 +1,159 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var fs  = require('fs');
+var pth = require('path');
+var yml = require('js-yaml');
+var req = require('request');
+var _   = require('underscore');
+var clc = require('cli-color');
+var prg = require('progress');
+
+
+
+var FastDriver = function  (filename) {
+  var _this       = this;
+  _this.filename  = filename;
+  _this.groupDict = {};
+  _this.execQue   = [];
+  _this.baseUrl   = 'https://api.stackdriver.com/v0.2/groups';
+  
+  _this.resolveFileName = function () {
+    try {
+      _this.fullFilePath = pth.resolve(_this.filename);
+    }
+    catch (err) {
+      console.log(clc.red("Could not find the specified file."));
+      process.exit(1);
+    }
+  };
+
+  _this.parseYAML = function () {
+    try {
+      _this.parsed = yml.safeLoad(fs.readFileSync(_this.fullFilePath, 'utf8'));
+    } catch (err) {
+      console.log(clc.red('Could not load yaml file: ' + err));
+      process.exit(1);
+    }
+  };
+
+  _this.extract_api_key = function () {
+    try {
+    _this.api_key = _this.parsed['stackdriver_api_key'];
+    delete _this.parsed['stackdriver_api_key'];
+    }
+    catch (err) {
+      console.log(clc.red(err));
+    }
+    if (!_this.api_key) {
+      console.log(clc.red('stackdriver_api_key is not set in the spec file'));
+      process.exit(1);
+    }
+  };
+
+  _this.getGroupList = function () {
+    var opts = {};
+    opts.url = 'https://api.stackdriver.com/v0.2/groups'
+    opts.headers = {'accept': 'application/json', 
+                    'x-stackdriver-apikey': _this.api_key};
+    var r = req(opts, function (err, resp, body) {
+      if (!err) {
+        var data = JSON.parse(body)['data'];
+        var a = _.each(data, function (item) {
+          _this.groupDict[item.name] = item.id;
+        });
+        console.log(clc.blue('Group List Retrieved.'));
+        _this.resolveDeps();
+      }
+      else {
+        console.log(clc.red('An error ocurred while retrieving existing group list: ' + err));
+        process.exit(1);
+      }
+    });
+  };
+
+  _this.resolveDeps = function () {
+    console.log(clc.blue('Resolving dependencies.'));
+    var ks = Object.keys(_this.parsed);
+    var a = _.each(ks, function (key) {
+      var group = _this.parsed[key];
+      if (group.requires) {
+        var parentGroup = _this.parsed[group.requires];
+        _this.safePush({name: group.requires, obj: parentGroup});
+      }
+      else if (group.parent && !group.requires) {
+        group.parent = _this.getParentId(group.parent);
+      }
+      _this.safePush({name: key, obj: group});
+    });
+    console.log(clc.blue('Done resolving dependencies.'));
+    _this.processQue();
+  };
+
+  _this.processQue = function () {
+    var opts = {};
+    opts.url = 'https://api.stackdriver.com/v0.2/groups'
+    opts.method = 'POST';
+    opts.headers = {'accept': 'application/json', 
+                    'x-stackdriver-apikey': _this.api_key,
+                    'Content-Type': 'application/json'};
+    _.each(_this.execQue, function (item) {
+      var payload = {};
+      payload.name = item.name;
+      payload.parent_id = item.obj.parent || null;
+      payload.cluster = false;
+      payload.conjunction = item.obj.conjunction || 'OR';
+      payload.conditions = _this.fixConditions(item.obj.conditions) || [];
+      //console.dir(payload);
+      opts.body = JSON.stringify(payload);
+      console.log(clc.blue('Creating group ' + payload.name));
+      req(opts, function (err, resp, body) {
+        if (!err && resp.statusCode >= 200) {
+          console.log(clc.blue('Group ' + payload.name + ' was successfully created.'));
+        }
+      });
+    });
+  };
+
+  // util functions
+  _this.safePush = function (item) {
+    if (!_this.isAlreadyInQueue(item.name)){
+      _this.execQue.push(item);
+    }
+  };
+
+  _this.isAlreadyInQueue = function (groupName) {
+    var found = _.find(_this.execQue, function (item) {
+      return item.name === groupName;
+    });
+    return found;
+  };
+
+  _this.getParentId = function (groupName) {
+    return _this.groupDict[groupName];
+  };
+
+  _this.fixConditions = function (conditions) {
+    var conds = _.map(conditions, function (c) {
+      return {
+              'comparison': c.condition.comparison,
+              'type': c.condition.type,
+              'name': c.condition.name,
+              'value': c.condition.value
+            };
+    });
+    return conds;
+  };
+ 
+  // "main()"  
+  _this.run = function () {
+    _this.resolveFileName();
+    _this.parseYAML();
+    _this.extract_api_key();
+    _this.getGroupList();
+  }
+};
+
+var fd = new FastDriver(process.argv[2]);
+fd.run();

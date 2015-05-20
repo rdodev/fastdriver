@@ -1,13 +1,19 @@
 # Sample YAML file describing syntax and options for declaring Stack Driver groups and policies
-# The syntax is very similar to that of SaltStack states files
+# All rights reserved. (c) 2015.
+
+stackdriver_api_key: 'test1234567890test1234567890' # Required. use quotes to avoid issue with weird chars.
 
 group-name:
-  action: create # only create is supported at the moment
-  parent: null #if it's a subgroup, you need to specify that group's name, not id
+  parent: other-group #if it's a subgroup, you need to specify that group's name, not id
   conjunction: AND # AND and OR are supported
-  conditions: # you will need at least one condition
+  conditions:
     - condition:
         comparison: contains # ends_with, begins_with, etc.
-        type: tag # future-proofing, for now this value is ignored and assumed to be an AWS tag
+        type: tag 
         name: service # the name of said key
         value: example-service # the value
+
+'group:name:prod': # use quotes if group name has colons or other such character
+  action: create
+  parent: no
+  conditions: []

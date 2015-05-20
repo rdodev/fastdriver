@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var program = require('commander');
+var pkginfo = require('pkginfo')(module, 'version');
+
+program
+  .version(module.exports.version)
+  .command('create', 'create stack from file')
+  .parse(process.argv);
