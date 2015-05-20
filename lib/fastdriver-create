@@ -11,7 +11,7 @@ _   = require('underscore');
 var FastDriver = function  (filename) {
   var _this = this;
   _this.filename = filename;
-  _this.execQue  =[];
+  _this.execQue  = [];
   
   _this.resolveFileName = function () {
     try {
@@ -33,15 +33,56 @@ var FastDriver = function  (filename) {
     }
   };
 
-  _this.resolveDeps = function () {
-    
+  _this.extract_api_key = function () {
+    try {
+    _this.api_key = _this.parsed['stackdriver_api_key'];
+    delete _this.parsed['stackdriver_api_key'];
+    }
+    catch (err) {
+      console.log(err);
+    }
+    if (!_this.api_key) {
+      console.log('stackdriver_api_key is not set in the spec file');
+      process.exit(1);
+    }
   };
 
+  _this.resolveDeps = function () {
+    ks = Object.keys(_this.parsed);
+    _.each(ks, function (key) {
+      group = _this.parsed[key];
+      if (group.parent && group.requires) {
+        parentGroup = _this.parsed[group.requires];
+        _this.safePush({name: group.requires, obj: parentGroup});
+      }
+      _this.safePush({name: key, obj: group});
+    });
+  };
+
+// util functions
+  _this.safePush = function (item) {
+    if (!_this.isAlreadyInQueue(item.name)){
+      _this.execQue.push(item);
+    }
+  };
+
+  _this.isAlreadyInQueue = function (groupName) {
+    var found = false;
+    _.each(_this.execQue, function (item) {
+      if (item.name === groupName) { 
+        found = true;
+      }
+    });
+    return found;
+  };
+ 
+// "main()"  
   _this.run = function () {
     _this.resolveFileName();
     _this.parseYAML();
+    _this.extract_api_key();
     _this.resolveDeps();
-    _this.executeActions();
+    _this.processQue();
   }
 };
 

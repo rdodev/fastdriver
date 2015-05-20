@@ -1,11 +1,11 @@
 # Sample YAML file describing syntax and options for declaring Stack Driver groups and policies
 # All rights reserved. (c) 2015.
 
-stackdriver_api_key: 'test1234567890test1234567890' #use quotes to avoid issue with weird chars.
+stackdriver_api_key: 'test1234567890test1234567890' # Required. use quotes to avoid issue with weird chars.
 
 group-name:
   parent: other-group #if it's a subgroup, you need to specify that group's name, not id
-  requires: other-group # this will attempt to create named group before creating self
+  requires: other-group # only one level dependency supported
   conjunction: AND # AND and OR are supported
   conditions: # you will need at least one condition
     - condition:
