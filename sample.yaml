@@ -7,7 +7,7 @@ group-name:
   parent: other-group #if it's a subgroup, you need to specify that group's name, not id
   requires: other-group # only one level dependency supported
   conjunction: AND # AND and OR are supported
-  conditions: # you will need at least one condition
+  conditions:
     - condition:
         comparison: contains # ends_with, begins_with, etc.
         type: tag # future-proofing, for now this value is ignored and assumed to be an AWS tag

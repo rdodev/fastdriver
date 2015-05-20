@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
-fs  = require('fs');
-pth = require('path');
-yml = require('js-yaml');
-req = require('request');
-_   = require('underscore');
+'use strict';
+
+var fs  = require('fs');
+var pth = require('path');
+var yml = require('js-yaml');
+var req = require('request');
+var _   = require('underscore');
+var clc = require('cli-color');
+var prg = require('progress');
 
 
 
@@ -18,7 +22,7 @@ var FastDriver = function  (filename) {
       _this.fullFilePath = pth.resolve(_this.filename);
     }
     catch (err) {
-      console.log("Could not find the specified file.");
+      console.log(clc.red("Could not find the specified file."));
       process.exit(1);
     }
   };
@@ -26,9 +30,8 @@ var FastDriver = function  (filename) {
   _this.parseYAML = function () {
     try {
       _this.parsed = yml.safeLoad(fs.readFileSync(_this.fullFilePath, 'utf8'));
-      console.log(doc);
     } catch (err) {
-      console.log('Could not load yaml file: ' + err);
+      console.log(clc.red('Could not load yaml file: ' + err));
       process.exit(1);
     }
   };
@@ -39,10 +42,10 @@ var FastDriver = function  (filename) {
     delete _this.parsed['stackdriver_api_key'];
     }
     catch (err) {
-      console.log(err);
+      console.log(clc.red(err));
     }
     if (!_this.api_key) {
-      console.log('stackdriver_api_key is not set in the spec file');
+      console.log(clc.red('stackdriver_api_key is not set in the spec file'));
       process.exit(1);
     }
   };
@@ -59,7 +62,11 @@ var FastDriver = function  (filename) {
     });
   };
 
-// util functions
+  _this.processQue = function () {
+
+  };
+
+  // util functions
   _this.safePush = function (item) {
     if (!_this.isAlreadyInQueue(item.name)){
       _this.execQue.push(item);
@@ -76,7 +83,7 @@ var FastDriver = function  (filename) {
     return found;
   };
  
-// "main()"  
+  // "main()"  
   _this.run = function () {
     _this.resolveFileName();
     _this.parseYAML();
