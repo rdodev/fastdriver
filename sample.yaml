@@ -5,7 +5,7 @@ stackdriver_api_key: 'test1234567890test1234567890' # Required. use quotes to av
 
 group-name:
   parent: other-group #if it's a subgroup, you need to specify that group's name, not id
-  requires: other-group # only one level dependency supported
+  requires: other-group # only use if declared parent does *not* already exist and is declared elsewhere in this file
   conjunction: AND # AND and OR are supported
   conditions:
     - condition:

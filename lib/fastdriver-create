@@ -13,9 +13,11 @@ var prg = require('progress');
 
 
 var FastDriver = function  (filename) {
-  var _this = this;
-  _this.filename = filename;
-  _this.execQue  = [];
+  var _this       = this;
+  _this.filename  = filename;
+  _this.groupDict = {};
+  _this.execQue   = [];
+  _this.baseUrl   = 'https://api.stackdriver.com/v0.2/groups';
   
   _this.resolveFileName = function () {
     try {
@@ -50,21 +52,45 @@ var FastDriver = function  (filename) {
     }
   };
 
+  _this.getGroupList = function () {
+    var opts = {};
+    opts.url = 'https://api.stackdriver.com/v0.2/groups'
+    opts.headers = {'accept': 'application/json', 
+                    'x-stackdriver-apikey': _this.api_key};
+    return req(opts, function (err, resp, body) {
+      if (!err) {
+        _.each(body['data'], function (item) {
+          _this.groupDict[item.name] = item.id;
+        });
+      }
+      else {
+        console.log(clc.red('An error ocurred while retrieving existing group list: ' + err));
+        process.exit(1);
+      }
+    });
+  };
+
   _this.resolveDeps = function () {
     ks = Object.keys(_this.parsed);
     _.each(ks, function (key) {
       group = _this.parsed[key];
-      if (group.parent && group.requires) {
-        parentGroup = _this.parsed[group.requires];
+      if (group.requires) {
+        var parentGroup = _this.parsed[group.requires];
         _this.safePush({name: group.requires, obj: parentGroup});
+      }
+      else if (group.parent && !group.requires) {
+        group.parent = _this.getParentId(group.parent);
       }
       _this.safePush({name: key, obj: group});
     });
   };
 
-  _this.processQue = function () {
+  // _this.processQue = function () {
+  //   var opts = {
+  //     'url': ''
+  //   };
 
-  };
+  // };
 
   // util functions
   _this.safePush = function (item) {
@@ -82,12 +108,17 @@ var FastDriver = function  (filename) {
     });
     return found;
   };
+
+  _this.getParentId = function (groupName) {
+    return _this.groupDict[groupName];
+  };
  
   // "main()"  
   _this.run = function () {
     _this.resolveFileName();
     _this.parseYAML();
     _this.extract_api_key();
+    _this.getGroupList();
     _this.resolveDeps();
     _this.processQue();
   }
