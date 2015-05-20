@@ -1,5 +1,7 @@
 # fastdriver
-Mini utility to make creation of StackDriver groups and policies faster
+Mini utility to make creation of StackDriver groups and policies faster. 
+
+*Please note that as of writing, this is code can be assumed to be in non-working condition (given that it's currently untested).*
 
 ## Installing
 You have two options:
