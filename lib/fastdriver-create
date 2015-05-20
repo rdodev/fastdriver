@@ -57,11 +57,14 @@ var FastDriver = function  (filename) {
     opts.url = 'https://api.stackdriver.com/v0.2/groups'
     opts.headers = {'accept': 'application/json', 
                     'x-stackdriver-apikey': _this.api_key};
-    return req(opts, function (err, resp, body) {
+    var r = req(opts, function (err, resp, body) {
       if (!err) {
-        _.each(body['data'], function (item) {
+        var data = JSON.parse(body)['data'];
+        var a = _.each(data, function (item) {
           _this.groupDict[item.name] = item.id;
         });
+        console.log(clc.blue('Group List Retrieved.'));
+        _this.resolveDeps();
       }
       else {
         console.log(clc.red('An error ocurred while retrieving existing group list: ' + err));
@@ -71,9 +74,10 @@ var FastDriver = function  (filename) {
   };
 
   _this.resolveDeps = function () {
-    ks = Object.keys(_this.parsed);
-    _.each(ks, function (key) {
-      group = _this.parsed[key];
+    console.log(clc.blue('Resolving dependencies.'));
+    var ks = Object.keys(_this.parsed);
+    var a = _.each(ks, function (key) {
+      var group = _this.parsed[key];
       if (group.requires) {
         var parentGroup = _this.parsed[group.requires];
         _this.safePush({name: group.requires, obj: parentGroup});
@@ -83,14 +87,34 @@ var FastDriver = function  (filename) {
       }
       _this.safePush({name: key, obj: group});
     });
+    console.log(clc.blue('Done resolving dependencies.'));
+    _this.processQue();
   };
 
-  // _this.processQue = function () {
-  //   var opts = {
-  //     'url': ''
-  //   };
-
-  // };
+  _this.processQue = function () {
+    var opts = {};
+    opts.url = 'https://api.stackdriver.com/v0.2/groups'
+    opts.method = 'POST';
+    opts.headers = {'accept': 'application/json', 
+                    'x-stackdriver-apikey': _this.api_key,
+                    'Content-Type': 'application/json'};
+    _.each(_this.execQue, function (item) {
+      var payload = {};
+      payload.name = item.name;
+      payload.parent_id = item.obj.parent || null;
+      payload.cluster = false;
+      payload.conjunction = item.obj.conjunction || 'OR';
+      payload.conditions = _this.fixConditions(item.obj.conditions) || [];
+      //console.dir(payload);
+      opts.body = JSON.stringify(payload);
+      console.log(clc.blue('Creating group ' + payload.name));
+      req(opts, function (err, resp, body) {
+        if (!err && resp.statusCode >= 200) {
+          console.log(clc.blue('Group ' + payload.name + ' was successfully created.'));
+        }
+      });
+    });
+  };
 
   // util functions
   _this.safePush = function (item) {
@@ -100,17 +124,26 @@ var FastDriver = function  (filename) {
   };
 
   _this.isAlreadyInQueue = function (groupName) {
-    var found = false;
-    _.each(_this.execQue, function (item) {
-      if (item.name === groupName) { 
-        found = true;
-      }
+    var found = _.find(_this.execQue, function (item) {
+      return item.name === groupName;
     });
     return found;
   };
 
   _this.getParentId = function (groupName) {
     return _this.groupDict[groupName];
+  };
+
+  _this.fixConditions = function (conditions) {
+    var conds = _.map(conditions, function (c) {
+      return {
+              'comparison': c.condition.comparison,
+              'type': c.condition.type,
+              'name': c.condition.name,
+              'value': c.condition.value
+            };
+    });
+    return conds;
   };
  
   // "main()"  
@@ -119,8 +152,6 @@ var FastDriver = function  (filename) {
     _this.parseYAML();
     _this.extract_api_key();
     _this.getGroupList();
-    _this.resolveDeps();
-    _this.processQue();
   }
 };
 
