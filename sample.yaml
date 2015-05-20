@@ -14,6 +14,5 @@ group-name:
         value: example-service # the value
 
 'group:name:prod': # use quotes if group name has colons or other such character
-  action: create
   parent: no
   conditions: []
