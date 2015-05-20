@@ -1,5 +1,7 @@
 # fastdriver
-Mini utility to make creation of StackDriver groups and policies faster. 
+Mini utility to make creation of StackDriver groups faster.
+
+Additionally, you need to have a premium subscription with Stack Driver in order to use their REST API. 
 
 *Please note that as of writing, this is code can be assumed to be in non-working condition (given that it's currently untested).*
 
